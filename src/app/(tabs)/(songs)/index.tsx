@@ -1,10 +1,12 @@
-import ASearchBar from '@/components/androidComponents/SearchBar'
 import { TracksList } from '@/components/TracksList'
 import { screenPadding } from '@/constants/tokens'
 import { useNavigationSearch } from '@/hooks/useNavigationSearch'
 import { defaultStyles } from '@/styles'
-import React from 'react'
-import { View, ScrollView } from 'react-native'
+import React, { useMemo } from 'react'
+import { View, ScrollView, Platform } from 'react-native'
+import { useASearchBar } from '@/hooks/useASearchBar'
+import { library } from '@/assets/data/library'
+import { trackTitleFilter } from '@/helpers/filter'
 
 const SongsScreen = () => {
 	const search = useNavigationSearch({
@@ -13,14 +15,22 @@ const SongsScreen = () => {
 		},
 	})
 
+	const { search: aSearch, SearchBar } = useASearchBar({
+		placeholder: 'Find in songs',
+	})
+
+	const filteredTracks = useMemo(() => {
+		return library.filter(trackTitleFilter(Platform.OS === 'ios' ? search : aSearch))
+	}, [search, aSearch])
+
 	return (
 		<View style={defaultStyles.container}>
-			<ASearchBar placeholder="Search in songs" />
+			<SearchBar />
 			<ScrollView
 				style={{ paddingHorizontal: screenPadding.horizontal }}
 				contentInsetAdjustmentBehavior="automatic"
 			>
-				<TracksList scrollEnabled={false} />
+				<TracksList tracks={filteredTracks} scrollEnabled={false} />
 			</ScrollView>
 		</View>
 	)
